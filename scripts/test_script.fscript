@@ -1,0 +1,23 @@
+#fscript
+create f ./newfile.txt Hi there this is the first file!
+create f ./newfile1.txt Alone in the house lived a kid, wreaked who, a havoc on the robbers the intruded in!
+create f ./newfile2.txt Aloha Scooby Doo
+create f ./newfile3.txt Ghaizhe Hoajei Shunzai Wohio BIng Chilling Wahanjinmen Bing Chilling!
+create f ./newfile4.txt Whadda dog doin?
+create f ./newfile5.txt I would like to clarify that there is no need to worry about the matters!
+create d ./newdir
+create d ./newdir1
+create d ./newdir2
+move ./newfile.txt ./newdir
+move ./newfile1.txt ./newdir1
+move ./newfile2.txt ./newdir1
+move ./newfile3.txt ./newdir2
+move ./newfile4.txt ./newdir2
+mmap
+memory
+read ./newdir/newfile.txt f
+read ./newdir1/newfile1.txt f
+read ./newdir1/newfile2.txt f
+read ./newdir2/newfile3.txt f
+read ./newdir2/newfile4.txt f
+delete ./newdir/newfile.txt

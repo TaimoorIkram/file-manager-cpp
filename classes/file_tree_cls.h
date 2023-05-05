@@ -24,6 +24,7 @@ public:
     
     // directory functions
     bool delete_f(string);
+    bool remove_f(string);
 
     bool add_d(string);
     bool delete_d(string);
@@ -117,7 +118,40 @@ bool file_tree_cls::delete_f(string filepath){
         
         if(file->get_file_name() == path_elements.back()){
             prev_dir->delete_file(file->get_file_name());
-            return true;
+            if(memory->cascade_delete(file->get_start_blk())){
+                return true;
+            }
+            else throw system_error_cls(2);
+        }
+        
+    }
+    catch(system_error_cls &e)
+    {
+        e.display();
+    }
+    return false;
+}
+
+bool file_tree_cls::remove_f(string filepath){
+     vector<string> path_elements = process_f_path(filepath);
+    try
+    {
+        directory_cls* directory = root, *prev_dir = root;
+        file_cls* file = NULL;
+        for(int iter = 1; iter < path_elements.size(); iter++){
+            prev_dir = directory;
+            directory = directory->find_directory(path_elements.at(iter));
+            if(!directory) {
+                file = prev_dir->find_file(path_elements.at(iter));
+                if(!file){
+                    throw system_error_cls(0);
+                    break;
+                }
+            }
+        }
+        
+        if(file->get_file_name() == path_elements.back()){
+            prev_dir->delete_file(file->get_file_name());
         }
         
     }
@@ -213,11 +247,11 @@ string heirarchy_indent(int level){
 
 void file_tree_cls::get_file_tree(directory_cls* rootdir, int heir_level = 0){
     
-    cout << heirarchy_indent(heir_level) << rootdir->get_dir_name() << endl;
+    cout << heirarchy_indent(heir_level) << "" << rootdir->get_dir_name() << endl;
     list<file_cls*>* files = rootdir->get_files();
     if(files->size() != 0){
         for(file_cls* file : *files){
-            if(file) cout << heirarchy_indent(heir_level+1) << file->get_file_name() << endl;
+            if(file) cout << heirarchy_indent(heir_level+1) << "" << file->get_file_name() << "--blk " << file->get_start_blk() << endl;
         }
     }
     list<directory_cls*>* directories = rootdir->get_directories();

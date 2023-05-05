@@ -12,14 +12,7 @@ private:
         "INVALID_MEMORY_WRITE", // 0
         "DATA_STRUCTURE_CORRUPTION", // 1
         "FILE_DIR_PUSH_BACK_FAIL", // 2
-        "", // 3
-        "", // 4
-        "", // 5
-        "", // 6
-        "", // 7
-        "", // 8
-        "", // 9
-        "", // 10
+        "FILE_INIT_ERROR", // 3
     };
 public:
     system_error_cls(int);
@@ -32,7 +25,7 @@ public:
 };
 
 void system_error_cls::display(){
-    system("cls");
+    // system("cls");
     cout << "\t--------------------------------------" << endl;
     cout << "\tOops, that was not supposed to happen." << endl;
     cout << "\n\n\tCRITICAL ERROR: " + get_error_details(error_code) << endl;
@@ -41,7 +34,7 @@ void system_error_cls::display(){
 }
 
 void system_error_cls::display(memory_cls* memory){
-    system("cls");
+    // system("cls");
     cout << "\t--------------------------------------" << endl;
     cout << "\tOops, that was not supposed to happen." << endl;
     cout << "\n\n\tCRITICAL ERROR: " + get_error_details(error_code) << endl;

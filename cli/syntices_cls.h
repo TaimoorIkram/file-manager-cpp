@@ -1,5 +1,6 @@
 #include<iostream>
 #include<vector>
+#include<fstream>
 
 // prerequisite system files
 #include"../classes/file_cls.h"
@@ -7,7 +8,7 @@
 
 using namespace std;
 
-#define TOTAL_COMMANDS 14
+#define TOTAL_COMMANDS 15
 
 class syntices_cls
 {
@@ -17,7 +18,7 @@ private:
     directory_cls* current_dir;
     file_cls* open_file = NULL;
 
-    string commands[14] = {
+    string commands[15] = {
         "help",
         "create",
         "write", 
@@ -32,6 +33,7 @@ private:
         "mmap",
         "quit",
         "memory",
+        "fscript",
     };
 
     string descriptions[20] = {
@@ -49,9 +51,10 @@ private:
         "show the entire memory map",
         "close the software",
         "show the memory data",
+        "run a script in the command line",
     };
 
-    string syntices[20][14] = {
+    string syntices[20][15] = {
         {"help"},
         {"create", "f|d", "<../dir/name>"},
         {"write", "<filepath>", "a|o", "<data>"},
@@ -66,13 +69,18 @@ private:
         {"mmap"},
         {"quit"},
         {"memory"},
+        {"fscript", "<../real/script_file_path>"},
     };
 
 public:
+    bool script_mode = false;
+
     syntices_cls(memory_cls*, file_tree_cls*);
     ~syntices_cls();
 
     void process_command(vector<string>);
+    vector<string> to_command_args(string);
+    void execute_script(string);
     int find_command_by_name(string);
     void help();
     void shelp(string);
@@ -89,6 +97,23 @@ public:
     // void show_mem_map();
 };
 
+vector<string> syntices_cls::to_command_args(string args){
+    char delimiter = ' ';
+    vector<std::string> parts;
+    size_t start = 0, end = 0;
+
+    while ((end = args.find(delimiter, start)) != std::string::npos) {
+        std::string part = args.substr(start, end - start);
+        parts.push_back(part);
+        start = end + 1;
+    }
+
+    std::string part = args.substr(start);
+    parts.push_back(part);
+
+    return parts;
+}
+
 string syntices_cls::get_curr_dir_name(){
     return current_dir->get_dir_name();
 }
@@ -103,25 +128,40 @@ void syntices_cls::process_command(vector<string> args){
                     else if(args.size() != 1) shelp(args.at(1));
                     break;
                 case 1:
-                    if(args.size() == 3){
-                        bool successful;
-                        if(args.at(1) == "f"){
-                            string data;
-                            cout << "\twrite something to the file: "; getline(cin, data);
-                            tree->add_f(args.at(2), data);
+                    if(args.size() >= 4 && args.at(1) == "f"){
+                        string data;
+                        for (int iter = 3; iter < args.size(); iter++)
+                        {
+                            data += args.at(iter) + " ";
                         }
-                        else if(args.at(1) == "d"){
-                            tree->add_d(args.at(2));
-                        }
+                        
+                        tree->add_f(args.at(2), data);
+                    
+                    }
+                    else if(args.size() == 3 && args.at(1) == "d"){
+                        tree->add_d(args.at(2));
                     }
                     break;
                 case 2:
-                    if(args.size() == 4){
+                    if(args.size() >= 4){
                         file_cls* tmp_file = tree->search_f(args.at(1));
-                        if(args.at(2) == "o") memory->write_to_block(tmp_file->get_start_blk(), args.at(3));
+                        if(args.at(2) == "o") {
+                            memory->cascade_delete(tmp_file->get_start_blk());
+                            string new_data = "";
+                            for (int iter = 3; iter < args.size(); iter++)
+                            {
+                                new_data += args.at(iter) + " ";
+                            }
+                            memory->write_to_block(tmp_file->get_start_blk(), new_data);
+                        }
                         else if(args.at(2) == "a"){
                             string old_data = memory->read_block(tmp_file->get_start_blk());
-                            string new_data = old_data + args.at(3);
+                            string new_data = old_data + " ";
+                            for (int iter = 3; iter < args.size(); iter++)
+                            {
+                                new_data += args.at(iter) + " ";
+                            }
+                            memory->cascade_delete(tmp_file->get_start_blk());
                             memory->write_to_block(tmp_file->get_start_blk(), new_data);
                         }
                         cout << endl;
@@ -161,10 +201,11 @@ void syntices_cls::process_command(vector<string> args){
                         directory_cls* tmp_dir = tree->search_d(args.at(2));
                         tmp_dir->add_file(tmp_file);
                         
-                        vector<string> _command;
-                        _command.push_back("delete");
-                        _command.push_back(args.at(1));
-                        process_command(_command);
+                        // vector<string> _command;
+                        // _command.push_back("delete");
+                        // _command.push_back(args.at(1));
+                        // process_command(_command);
+                        tree->remove_f(args.at(1));
                     }
                     break;
                 case 9:
@@ -190,13 +231,40 @@ void syntices_cls::process_command(vector<string> args){
                 case 13:
                     memory->show();
                     break;
+                case 14:
+                    if(args.size() == 2){
+                        ifstream script_file(args.at(1));
+
+                        if (script_file.is_open()) { // check if file is open
+                            script_mode = true;
+                            string command;
+                            int read = 0;
+                            while (getline(script_file, command)) { // read file line by line
+                                try{
+                                    if(command == "#fscript" && read == 0) read++;
+                                    if(read == 0) throw system_error_cls(3);
+                                } catch(system_error_cls e){
+                                    e.display();
+                                    return;
+                                }
+                                cout << "\n\t" << get_curr_dir_name() << "> " << command << endl;
+                                process_command(to_command_args(command));                                
+                            }
+                            script_file.close(); // close file
+                            script_mode = false;
+                            return;
+                        }
+                        else {
+                            std::cout << "\tUnable to open file. Invalid format." << std::endl;
+                        }
+                    }
+                    break;
                 default:
                     cout << "\tinvalid command " << args.at(0) << endl;
                     break;
             }
         }
     }
-    
 }
 
 int syntices_cls::find_command_by_name(string command){
