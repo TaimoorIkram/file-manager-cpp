@@ -1,0 +1,8 @@
+#fscript
+memory
+create f ./newdir1/newfile7.txt Hello this is a file
+create f ./newfile8.txt asjkdoawididjodisjoaidjwodijaiosjioadjiodwjioadjiosjdaisdu9a0s9dua09d09a8w09da890890480938430983209483209
+memory
+write ./newfile8.txt o kjdasldjklasdj
+memory
+write ./newfile8.txt a kjdasldjklasdj

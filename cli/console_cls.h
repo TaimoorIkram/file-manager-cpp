@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -17,35 +18,19 @@ public:
 
     // defined
     void main_screen();
+    void main_screen_script_mode(string);
     void sys_msg(string, int);
     string get_sys_msg_sym(int);
-    vector<string> to_command_args(string);    
 
     // undefined
 };
-vector<string> console_cls::to_command_args(string args){
-    char delimiter = ' ';
-    vector<std::string> parts;
-    size_t start = 0, end = 0;
-
-    while ((end = args.find(delimiter, start)) != std::string::npos) {
-        std::string part = args.substr(start, end - start);
-        parts.push_back(part);
-        start = end + 1;
-    }
-
-    std::string part = args.substr(start);
-    parts.push_back(part);
-
-    return parts;
-}
 
 void console_cls::main_screen(){
     sys_msg("Type 'help' for a list of available commands.", 0);
     while(true){
         cout << "\n\t" << syntax_processor->get_curr_dir_name() << "> "; getline(cin, user_command);
         try{
-            syntax_processor->process_command(to_command_args(user_command));
+            syntax_processor->process_command(syntax_processor->to_command_args(user_command));
         }
         catch(system_error_cls &e)
         {
@@ -53,6 +38,40 @@ void console_cls::main_screen(){
                 return;
             }
         }
+    }
+}
+
+void console_cls::main_screen_script_mode(string script_path){
+    ifstream script_file(script_path);
+
+    if (script_file.is_open()) { // check if file is open
+        string command;
+        int read = 0;
+        while (getline(script_file, command)) { // read file line by line
+            try{
+                if(command == "#fscript" && read == 0) read++;
+                if(read == 0) throw system_error_cls(3);
+            } catch(system_error_cls e){
+                e.display();
+                return;
+            }
+            cout << "\n\t" << syntax_processor->get_curr_dir_name() << "> " << command << endl;
+            try{
+                syntax_processor->process_command(syntax_processor->to_command_args(command));
+            }
+            catch(system_error_cls &e)
+            {
+                if(e.get_error_code() == -1) {
+                    return;
+                }
+            }
+            
+        }
+        script_file.close(); // close file
+        return;
+    }
+    else {
+        std::cout << "Unable to open file. Invalid format." << std::endl;
     }
 }
 

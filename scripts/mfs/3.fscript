@@ -1,0 +1,18 @@
+#fscript
+create d ./newdir
+create d ./newdir1
+create d ./newdir2
+move ./newfile.txt ./newdir
+move ./newfile1.txt ./newdir1
+move ./newfile2.txt ./newdir1
+move ./newfile3.txt ./newdir2
+move ./newfile4.txt ./newdir2
+
+mmap
+memory
+read ./newdir/newfile.txt f
+read ./newdir1/newfile1.txt f
+read ./newdir1/newfile2.txt f
+read ./newdir2/newfile3.txt f
+read ./newdir2/newfile4.txt f
+delete ./newdir/newfile.txt
