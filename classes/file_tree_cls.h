@@ -47,7 +47,7 @@ bool file_tree_cls::add_f(string filepath, string data){
             }
         }
         if(directory->add_file(newfile)){
-            newfile->set_start_blk(memory->add_block(memory->get_head_block()));
+            newfile->set_start_blk(memory->get_least_available_block_id() == -1 ? memory->add_block(memory->get_head_block()) : memory->get_least_available_block_id());
             memory->write_to_block(newfile->get_start_blk(), data);
             return true;
         }

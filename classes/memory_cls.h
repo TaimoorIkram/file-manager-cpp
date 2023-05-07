@@ -101,7 +101,7 @@ memory_cls::memory_blk* memory_cls::get_head_block(){
 
 memory_cls::memory_blk* memory_cls::get_block(int block_id){
     memory_blk* block_ptr = head;
-    while(block_ptr != NULL){
+    while(block_ptr != NULL ){
         if(block_ptr->blk_id == block_id) return block_ptr;
         block_ptr = block_ptr->next;
     }
